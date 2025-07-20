@@ -16,6 +16,7 @@ using UnityEngine.EventSystems;
 using System.Globalization;
 using System.IO;
 using UnityEngine.UI;
+using System.Runtime.CompilerServices;
 
 namespace ASL_Prac
 {
@@ -27,6 +28,7 @@ namespace ASL_Prac
     {
         static Dictionary<string, string> Locale_CN = new Dictionary<string, string>{
             { "Invincable","无敌" },
+            { "unlock all stage","全关解锁" },
             { "front 1"                         ,"前半 1"},
             { "front 2(after title)"            ,"前半 2(标题后)"},
             { "front 3(big butterfly)"          ,"前半 3(大蝴蝶)"},
@@ -113,6 +115,16 @@ namespace ASL_Prac
         static private int wait_time = 0;
         static private Rect windRc = new Rect(10, 10, 300, 400);
         static private Prac_Hotkey hotkey_invincable = new Prac_Hotkey(KeyCode.F1,"F1","Invincable",(bool s) => { Prac_Variables.is_invincable=s; });
+        static private Prac_Hotkey hotkey_unlock_all = new Prac_Hotkey(KeyCode.F1,"F2", "unlock all stage", (bool s) => { 
+            hotkey_unlock_all.isActivated = false;
+            Sincos.unlock_ex=true;
+            Sincos.unlock_ex2=true;
+            for(int i=0;i<4;i++){
+                for(int j = 0; j<8; j++) {
+                    Sincos.unlock_pr[i, j]=17;
+                }
+            }
+        });
         static public void OnGUI(){
             if (isOpen) {
                 GUILayout.BeginArea(new Rect(0, 0, Screen.width, Screen.height));
@@ -121,6 +133,7 @@ namespace ASL_Prac
                 GUILayout.Label($"prac = {Prac_JmpGUIPatches.isPrac}");
                 GUILayout.Label("  ");
                 hotkey_invincable.OnGUI();
+                hotkey_unlock_all.OnGUI();
                 GUILayout.EndArea();
                 // GUILayout.Window(114514, windRc, Window, "tools");
                 if (UnityEngine.Input.GetKeyUp(KeyCode.Backspace) && wait_time>10){
@@ -449,10 +462,10 @@ namespace ASL_Prac
         [HarmonyPostfix, HarmonyPatch(typeof(Anniu_xuanzhong), "OnButtonSubmit")]
         public static void Anniu_xuanzhong_OnButtonSubmit_PracJmpPatch(Anniu_xuanzhong __instance, GameObject go)
         {
-            if(go==__instance.gamestart.gameObject || go==__instance.exstart.gameObject){
+            if(go == __instance.gamestart.gameObject || go == __instance.exstart.gameObject){
                 isPrac = false;
             }
-            if (pracJmpSelectState==PracJmpSelectState.Closed) {
+            if (pracJmpSelectState == PracJmpSelectState.Closed) {
                 bool has_null = false;
                 foreach (var prs in __instance.pr_stage){
                     if(prs!=null) prs.interactable = true;
@@ -819,7 +832,7 @@ namespace ASL_Prac
         }
     }
 
-    [BepInPlugin("xxx.RUE.ASL_Prac","ASL_Prac","0.0.2")]
+    [BepInPlugin("xxx.RUE.ASL_Prac","ASL_Prac","0.0.3")]
     public class ASL_Prac_Mod:BaseUnityPlugin
     {
         void Start()
