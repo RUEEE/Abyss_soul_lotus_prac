@@ -1,0 +1,35 @@
+Anniu_xuanzhong/Pr_select	练习模式
+Boss_zhuanjieduan
+Basic
+Spell/Spell_Select
+
+Bossmove/fuka
+Bossmove/fixedupdate 1398
+Sincos/gametime
+
+Sincos/unlock_true_finalboss
+
+
+
+
+一道中道中非，道中卡
+一关底一非，一卡，二非，二卡，三卡
+
+二道中卡
+
+二关底一非，一卡，二非，二卡，三卡
+
+三道中一卡，二卡
+
+三关底一非，一卡，二卡，二非，三卡，三非，四卡
+四道中无道中boss
+
+四关底一非，一卡，二卡，二非，三卡，四卡，lsc
+五道中非，道中卡
+
+五关底一非，一卡，二非，二卡，三非，三卡，四非，四卡，lsc
+
+六道中boss无
+
+六关底一非，一卡，二非，二卡，三非，三卡，四非，四卡，五卡，六卡，lsc
+

@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34607.119
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASL_Prac", "ASL_Prac.csproj", "{B0060325-3340-4921-9907-4F4AE1167C2B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B0060325-3340-4921-9907-4F4AE1167C2B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B0060325-3340-4921-9907-4F4AE1167C2B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B0060325-3340-4921-9907-4F4AE1167C2B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B0060325-3340-4921-9907-4F4AE1167C2B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0F189239-3252-4B1C-9105-8A061B54F33C}
+	EndGlobalSection
+EndGlobal
