@@ -35,6 +35,7 @@
   <ItemGroup>
     <Reference Include="0Harmony">
       <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\THasl\BepInEx\core\0Harmony.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Assembly-CSharp-nstrip">
       <HintPath>..\ASL_dll\Assembly-CSharp-nstrip.dll</HintPath>

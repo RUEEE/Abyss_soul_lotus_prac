@@ -724,6 +724,9 @@ namespace ASL_Prac
                     var face = Prac_JmpGUIPatches.stageFace_2[Prac_JmpGUIPatches.pracJmpStage - 1][Prac_JmpGUIPatches.pracJmpStageFace];
                     Sincos.gametime = face.time;
                     Sincos.gametime_beifen = face.time - 1;// to avoid equal test
+                    if (Sincos.BGM){
+                        Sincos.BGM.time = face.time / 120.0f - 0.266f;
+                    }
                     if (face.type==3){
                         var obj = UnityEngine.Object.FindObjectOfType(typeof(Boss_creat));
                         if (Sincos.boss.Count>=1){
@@ -816,7 +819,7 @@ namespace ASL_Prac
         }
     }
 
-    [BepInPlugin("xxx.RUE.ASL_Prac","ASL_Prac","0.0.1")]
+    [BepInPlugin("xxx.RUE.ASL_Prac","ASL_Prac","0.0.2")]
     public class ASL_Prac_Mod:BaseUnityPlugin
     {
         void Start()

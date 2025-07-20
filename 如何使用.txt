@@ -1,3 +1,6 @@
+直接放入steam文件夹下(steam 库-东方雪莲华-右键 管理-浏览本地文件), 放入
+
+
 功能:
 按backspace后按F1 可以开无敌
 进入练习界面后可以选择从各种地方开始(LSC和3面道中2符不好整, 懒得管，，，)
@@ -8,3 +11,7 @@
 
 
 25/7/20 道中BGM能跳转了
+
+
+代码:
+https://github.com/RUEEE/Abyss_soul_lotus_prac
