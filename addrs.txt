@@ -9,7 +9,7 @@ Sincos/gametime
 
 Sincos/unlock_true_finalboss
 
-
+Sincos.anjian_now[6] = X
 
 
 一道中道中非，道中卡

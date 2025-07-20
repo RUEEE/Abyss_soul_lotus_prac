@@ -23,12 +23,14 @@ namespace ASL_Prac
     static class Prac_Variables
     {
         public static bool is_invincable = false;
+        public static bool is_disable_X = false;
     }
     static class Prac_Locale
     {
         static Dictionary<string, string> Locale_CN = new Dictionary<string, string>{
             { "Invincable","无敌" },
-            { "unlock all stage","全关解锁" },
+            { "Unlock all stage","全关解锁" },
+            { "Disable X key","禁用X键" },
             { "front 1"                         ,"前半 1"},
             { "front 2(after title)"            ,"前半 2(标题后)"},
             { "front 3(big butterfly)"          ,"前半 3(大蝴蝶)"},
@@ -115,7 +117,7 @@ namespace ASL_Prac
         static private int wait_time = 0;
         static private Rect windRc = new Rect(10, 10, 300, 400);
         static private Prac_Hotkey hotkey_invincable = new Prac_Hotkey(KeyCode.F1,"F1","Invincable",(bool s) => { Prac_Variables.is_invincable=s; });
-        static private Prac_Hotkey hotkey_unlock_all = new Prac_Hotkey(KeyCode.F1,"F2", "unlock all stage", (bool s) => { 
+        static private Prac_Hotkey hotkey_unlock_all = new Prac_Hotkey(KeyCode.F2,"F2", "Unlock all stage", (bool s) => { 
             hotkey_unlock_all.isActivated = false;
             Sincos.unlock_ex=true;
             Sincos.unlock_ex2=true;
@@ -125,6 +127,7 @@ namespace ASL_Prac
                 }
             }
         });
+        static private Prac_Hotkey hotkey_disable_X = new Prac_Hotkey(KeyCode.F3, "F3", "Disable X key", (bool s) => { Prac_Variables.is_disable_X = s; });
         static public void OnGUI(){
             if (isOpen) {
                 GUILayout.BeginArea(new Rect(0, 0, Screen.width, Screen.height));
@@ -134,6 +137,7 @@ namespace ASL_Prac
                 GUILayout.Label("  ");
                 hotkey_invincable.OnGUI();
                 hotkey_unlock_all.OnGUI();
+                hotkey_disable_X.OnGUI();
                 GUILayout.EndArea();
                 // GUILayout.Window(114514, windRc, Window, "tools");
                 if (UnityEngine.Input.GetKeyUp(KeyCode.Backspace) && wait_time>10){
@@ -462,7 +466,8 @@ namespace ASL_Prac
         [HarmonyPostfix, HarmonyPatch(typeof(Anniu_xuanzhong), "OnButtonSubmit")]
         public static void Anniu_xuanzhong_OnButtonSubmit_PracJmpPatch(Anniu_xuanzhong __instance, GameObject go)
         {
-            if(go == __instance.gamestart.gameObject || go == __instance.exstart.gameObject){
+            if(go == __instance.gamestart.gameObject || go == __instance.exstart.gameObject || go == __instance.spellpractice.gameObject)
+            {
                 isPrac = false;
             }
             if (pracJmpSelectState == PracJmpSelectState.Closed) {
@@ -754,6 +759,30 @@ namespace ASL_Prac
     {
         static SpriteRenderer[] miss_cnt = new SpriteRenderer[8];
         static SpriteRenderer[] break_cnt = new SpriteRenderer[8];
+        static List<KeyCode> orig_Cancelkeys;
+
+        [HarmonyPrefix, HarmonyPatch(typeof(Anniu_Set), "FixedUpdate")]
+        public static void UnityEngine_GetKey_Patch1(Anniu_Set __instance,List<KeyCode> __state)
+        {
+            if(Prac_Variables.is_disable_X)
+            {
+                orig_Cancelkeys = new List<KeyCode>(m_StandaloneInputModule.Instance.m_CancelKeys);
+                for(int i=0;i< m_StandaloneInputModule.Instance.m_CancelKeys.Count;i++){
+                    m_StandaloneInputModule.Instance.m_CancelKeys[i] = KeyCode.None;
+                }
+            }
+        }
+        [HarmonyPostfix, HarmonyPatch(typeof(Anniu_Set), "FixedUpdate")]
+        public static void UnityEngine_GetKey_Patch2(Anniu_Set __instance, List<KeyCode> __state)
+        {
+            if (Prac_Variables.is_disable_X){
+                for (int i = 0; i< m_StandaloneInputModule.Instance.m_CancelKeys.Count; i++)
+                {
+                    m_StandaloneInputModule.Instance.m_CancelKeys[i] = orig_Cancelkeys[i];
+                }
+            }
+        }
+
         [HarmonyPostfix, HarmonyPatch(typeof(Jiemian_lifepice), "Start")]
         public static void Jiemian_lifepice_Start_UIPatch(Jiemian_lifepice __instance)
         {
@@ -832,7 +861,7 @@ namespace ASL_Prac
         }
     }
 
-    [BepInPlugin("xxx.RUE.ASL_Prac","ASL_Prac","0.0.3")]
+    [BepInPlugin("xxx.RUE.ASL_Prac","ASL_Prac","0.0.4")]
     public class ASL_Prac_Mod:BaseUnityPlugin
     {
         void Start()
