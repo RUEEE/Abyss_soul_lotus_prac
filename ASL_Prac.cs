@@ -24,6 +24,7 @@ namespace ASL_Prac
     {
         public static bool is_invincable = false;
         public static bool is_disable_X = false;
+        public static bool is_Ctrl_Spdup = false;
     }
     static class Prac_Locale
     {
@@ -31,6 +32,8 @@ namespace ASL_Prac
             { "Invincable","无敌" },
             { "Unlock all stage","全关解锁" },
             { "Disable X key","禁用X键" },
+            { "Kill all","瞬秒敌机" },
+            { "Ctrl SpdUp","Ctrl快进" },
             { "front 1"                         ,"前半 1"},
             { "front 2(after title)"            ,"前半 2(标题后)"},
             { "front 3(big butterfly)"          ,"前半 3(大蝴蝶)"},
@@ -85,6 +88,7 @@ namespace ASL_Prac
         private string keyName;
         HotKeyDelegate hotKeyDelegate;
         private int wait_time = 0;
+        private Color color;
         public Prac_Hotkey(KeyCode keyCode,string keyName, string name, HotKeyDelegate d)
         {
             isActivated = false;
@@ -92,17 +96,27 @@ namespace ASL_Prac
             this.name=name;
             this.keyName = keyName;
             hotKeyDelegate = d;
+            this.color = Color.white;
+        }
+        public Prac_Hotkey(KeyCode keyCode, string keyName, string name, HotKeyDelegate d, Color color)
+        {
+            isActivated = false;
+            hotKey = keyCode;
+            this.name=name;
+            this.keyName = keyName;
+            hotKeyDelegate = d;
+            this.color = color;
         }
         public void OnGUI() {
            
+            GUIStyle activated_style = new GUIStyle(GUI.skin.label);
             if (isActivated){
-                GUIStyle activated_style = new GUIStyle(GUI.skin.label);
                 activated_style.normal.textColor = Color.green;
                 activated_style.fontStyle = FontStyle.Italic;
-                GUILayout.Label($"[{keyName}] { Prac_Locale.GetLocaleString(name)}", activated_style);
             }else {
-                GUILayout.Label($"[{keyName}] {Prac_Locale.GetLocaleString(name)}");
+                activated_style.normal.textColor = color;
             }
+            GUILayout.Label($"[{keyName}] { Prac_Locale.GetLocaleString(name)}", activated_style);
             if (UnityEngine.Input.GetKeyUp(hotKey) && wait_time >= 10) {
                 isActivated = !isActivated;
                 hotKeyDelegate(isActivated);
@@ -117,7 +131,10 @@ namespace ASL_Prac
         static private int wait_time = 0;
         static private Rect windRc = new Rect(10, 10, 300, 400);
         static private Prac_Hotkey hotkey_invincable = new Prac_Hotkey(KeyCode.F1,"F1","Invincable",(bool s) => { Prac_Variables.is_invincable=s; });
-        static private Prac_Hotkey hotkey_unlock_all = new Prac_Hotkey(KeyCode.F2,"F2", "Unlock all stage", (bool s) => { 
+        static private Prac_Hotkey hotkey_disable_X = new Prac_Hotkey(KeyCode.F2, "F2", "Disable X key", (bool s) => { Prac_Variables.is_disable_X = s; });
+        static private Prac_Hotkey hotkey_Ctrl_Spdup = new Prac_Hotkey(KeyCode.F3, "F3", "Ctrl SpdUp", (bool s) => { Prac_Variables.is_Ctrl_Spdup = s; });
+
+        static private Prac_Hotkey hotkey_unlock_all = new Prac_Hotkey(KeyCode.F5,"F5", "Unlock all stage", (bool s) => { 
             hotkey_unlock_all.isActivated = false;
             Sincos.unlock_ex=true;
             Sincos.unlock_ex2=true;
@@ -126,8 +143,20 @@ namespace ASL_Prac
                     Sincos.unlock_pr[i, j]=17;
                 }
             }
-        });
-        static private Prac_Hotkey hotkey_disable_X = new Prac_Hotkey(KeyCode.F3, "F3", "Disable X key", (bool s) => { Prac_Variables.is_disable_X = s; });
+        },new Color(0.7f,0.9f,1.0f));
+        static private Prac_Hotkey hotkey_BossKill = new Prac_Hotkey(KeyCode.F6, "F6", "Kill all", (bool s) => {
+            hotkey_BossKill.isActivated = false;
+            foreach (var boss in Sincos.boss) {
+                boss.life = -1;
+            }
+            foreach(var enm in Sincos.enemy)
+            {
+                var enmm = enm.gameObject.GetComponent<Enemymove>();
+                if(enmm !=null){
+                    enmm.life = -1;
+                }
+            }
+        }, new Color(0.7f, 0.9f, 1.0f));
         static public void OnGUI(){
             if (isOpen) {
                 GUILayout.BeginArea(new Rect(0, 0, Screen.width, Screen.height));
@@ -136,8 +165,11 @@ namespace ASL_Prac
                 GUILayout.Label($"prac = {Prac_JmpGUIPatches.isPrac}");
                 GUILayout.Label("  ");
                 hotkey_invincable.OnGUI();
-                hotkey_unlock_all.OnGUI();
                 hotkey_disable_X.OnGUI();
+                hotkey_Ctrl_Spdup.OnGUI();
+                GUILayout.Label("  ");
+                hotkey_unlock_all.OnGUI();
+                hotkey_BossKill.OnGUI();
                 GUILayout.EndArea();
                 // GUILayout.Window(114514, windRc, Window, "tools");
                 if (UnityEngine.Input.GetKeyUp(KeyCode.Backspace) && wait_time>10){
@@ -781,6 +813,29 @@ namespace ASL_Prac
                     m_StandaloneInputModule.Instance.m_CancelKeys[i] = orig_Cancelkeys[i];
                 }
             }
+            // replay pitch
+            {
+                if (Sincos.kuaijin_yunxu && Sincos.gametime >= 120 && Time.timeScale != 0f)
+                {
+                    if (UnityEngine.Input.GetKey(m_StandaloneInputModule.Instance.m_ctrl) || UnityEngine.Input.GetKey(m_StandaloneInputModule.Instance.mj_ctrl))
+                    {
+                        Sincos.BGM.pitch = 3f;
+                    }else if (UnityEngine.Input.GetKey(m_StandaloneInputModule.Instance.m_slow) || UnityEngine.Input.GetKey(m_StandaloneInputModule.Instance.mj_slow))
+                    {
+                        Sincos.BGM.pitch = 0.5f;
+                    }
+                    else
+                    {
+                        Sincos.BGM.pitch = 1f;
+                    }
+                }
+                else
+                {
+                    if (Sincos.BGM.pitch != 1f)
+                        Sincos.BGM.pitch = 1f;
+                }
+                
+            }
         }
 
         [HarmonyPostfix, HarmonyPatch(typeof(Jiemian_lifepice), "Start")]
@@ -874,6 +929,8 @@ namespace ASL_Prac
         void Update()
         {
         }
+
+        static float fixedDeltaT_saved = -1.0f;
         void OnGUI()
         {
             GUI.skin.label.fontSize = 32;
@@ -881,6 +938,38 @@ namespace ASL_Prac
             GUI.skin.window.fontSize = 32;
             Prac_JmpGUIPatches.OnGUI();
             Prac_Overlay.OnGUI();
+            if(fixedDeltaT_saved == -1.0f)
+            {
+                fixedDeltaT_saved = UnityEngine.Time.fixedDeltaTime;
+            }
+            if (Prac_Variables.is_Ctrl_Spdup){
+                if (UnityEngine.Input.GetKey(KeyCode.LeftControl)&& Sincos.replay_nandu >= 6 && Sincos.ifreplay==false) //in prac mode,Sincos.replay_nandu = nandu+6
+                {
+                    if(UnityEngine.Time.fixedDeltaTime!=1.0f/(120.0f*5.0f))
+                    {
+                        UnityEngine.Time.fixedDeltaTime = 1.0f/(120.0f*5.0f);
+                        Sincos.BGM.pitch = 5.0f;
+                    }
+                }
+                else
+                {
+                    if (UnityEngine.Time.fixedDeltaTime!=fixedDeltaT_saved)
+                    {
+                        UnityEngine.Time.fixedDeltaTime = fixedDeltaT_saved;
+                        Sincos.BGM.pitch = 1.0f;
+                    }
+                }
+                
+            }
+            else
+            {
+                if (fixedDeltaT_saved != -1.0f && fixedDeltaT_saved != UnityEngine.Time.fixedDeltaTime)
+                {
+                    UnityEngine.Time.fixedDeltaTime = fixedDeltaT_saved;
+                    Sincos.BGM.pitch = 1.0f;
+                }
+            }
+           
         }
         
     }
