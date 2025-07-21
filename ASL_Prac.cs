@@ -916,7 +916,7 @@ namespace ASL_Prac
         }
     }
 
-    [BepInPlugin("xxx.RUE.ASL_Prac","ASL_Prac","0.0.4")]
+    [BepInPlugin("xxx.RUE.ASL_Prac","ASL_Prac","0.0.5")]
     public class ASL_Prac_Mod:BaseUnityPlugin
     {
         void Start()
