@@ -354,10 +354,12 @@ namespace ASL_Prac
               new BossFace("card 4",    7, 8,true),
               new BossFace("card 5",    8, 9,true),
 
-              new BossFace("card 6 P1",    9, 10,true),
+              new BossFace("card 6 P1", 9, 10,true),
               new BossFace("card 6 P2", 9, 10,true, 1),
               new BossFace("card 6 P3", 9, 10,true, 2),
               new BossFace("card 6 P4", 9, 10,true, 3),
+
+              new BossFace("normal 2+3", -1, -1,false, -1),
             },
         };
         public enum PracJmpSelectState
@@ -662,10 +664,19 @@ namespace ASL_Prac
                 var face = Prac_JmpGUIPatches.bossFaces_2[Prac_JmpGUIPatches.pracJmpBoss - 1][Prac_JmpGUIPatches.pracJmpBossFace];
                 if (!face.is_spell)
                 {
-                    __instance.bm.fuka = face.n_face;
-                    int idx = __instance.path.LastIndexOf('/');
-                    __instance.path = __instance.path.Substring(0, idx) + "/" + $"{face.n_path}";
-                    __instance.aa = __instance.path;
+                    if(face.n_face==-1)// 6boss normal 2+3 special
+                    {
+                        __instance.bm.fuka = 3;
+                        int idx = __instance.path.LastIndexOf('/');
+                        __instance.path = __instance.path.Substring(0, idx) + "/" + "3";
+                        __instance.aa = __instance.path;
+                       
+                    }else {
+                        __instance.bm.fuka = face.n_face;
+                        int idx = __instance.path.LastIndexOf('/');
+                        __instance.path = __instance.path.Substring(0, idx) + "/" + $"{face.n_path}";
+                        __instance.aa = __instance.path;
+                    }
                 }
                 else
                 {
