@@ -817,10 +817,10 @@ namespace ASL_Prac
             {
                 if (Sincos.kuaijin_yunxu && Sincos.gametime >= 120 && Time.timeScale != 0f)
                 {
-                    if (UnityEngine.Input.GetKey(m_StandaloneInputModule.Instance.m_ctrl) || UnityEngine.Input.GetKey(m_StandaloneInputModule.Instance.mj_ctrl))
+                    if ((UnityEngine.Input.GetKey(m_StandaloneInputModule.Instance.m_ctrl) || UnityEngine.Input.GetKey(m_StandaloneInputModule.Instance.mj_ctrl)) && Sincos.ifreplay==true)
                     {
                         Sincos.BGM.pitch = 3f;
-                    }else if (UnityEngine.Input.GetKey(m_StandaloneInputModule.Instance.m_slow) || UnityEngine.Input.GetKey(m_StandaloneInputModule.Instance.mj_slow))
+                    }else if ((UnityEngine.Input.GetKey(m_StandaloneInputModule.Instance.m_slow) || UnityEngine.Input.GetKey(m_StandaloneInputModule.Instance.mj_slow)) && Sincos.ifreplay==true)
                     {
                         Sincos.BGM.pitch = 0.5f;
                     }
