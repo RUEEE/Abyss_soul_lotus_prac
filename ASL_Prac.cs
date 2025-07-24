@@ -29,6 +29,16 @@ namespace ASL_Prac
     static class Prac_Locale
     {
         static Dictionary<string, string> Locale_CN = new Dictionary<string, string>{
+            { "border","结界" },
+            { "border_desc","结界不满200%时过面会自动加回200%" },
+            { "dian","得点" },
+            { "graze","擦弹" },
+            { "life","残" },
+            { "lifepiece","残碎" },
+            { "time","时间" },
+            { "score","分数" },
+            { "LSC","LSC" },
+
             { "Invincable","无敌" },
             { "Unlock all stage","全关解锁" },
             { "Disable X key","禁用X键" },
@@ -328,6 +338,7 @@ namespace ASL_Prac
               new BossFace("normal 2",  3, 4,false),
               new BossFace("card 3",    4, 5,true),
               new BossFace("card 4",    5, 6,true),
+              new BossFace("normal 1+2",    -2, -2,false,-2),
               // new BossFace("card 5",    6, 7,true),
             }, // stage 5
             new List<BossFace>
@@ -375,20 +386,58 @@ namespace ASL_Prac
         public static int time_wait = 0;
         public static bool isPrac = false;
 
+        public static float res_life = 8;   //Sincos.jiemian_life, life = 1 when have 0 life
+        public static float res_life_peice_a = 0; //Sincos.jiemian_lifepice_a
+        public static float res_life_peice_b_index = 1; //Sincos.jiemian_lifepice_b, Sincos.lifepice_count[Sincos.lifepice_index]
+        public static int res_life_peice_b = 20;
+        public static float res_border_percent = 300.00f; // Sincos.jiejiefanghu_val, 0~99999 = 0, 100000~199999 = 1,200000~299998 = 2, 299999 = 3
+        // 24*60*60*2, Sincos.daojishi
+        public static float res_time_hour = 24;
+        public static float res_time_min = 0;
+        public static float res_time_sec = 0;
+
+        public static int res_graze = 0; // Sincos.cadanshu
+        public static int res_dedian = 0; // Sincos.jiemian_dedian
+        public static int res_fenshu = 0; // Sincos.fenshu_now
+        private static string graze_str="0";
+        private static string dedian_str="0";
+        private static string fenshu_str="0";
+
+        public static bool res_has_LSC = true;
+
+        public static Dictionary<int, List<int>> life_peice_b_diff // Sincos.select_nandu
+            = new Dictionary<int, List<int>>()
+            {
+                {0,  new List<int>(){ 9, 9, 12, 12, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15 } },
+                {1,  new List<int>(){ 9, 9, 12, 12, 15, 15, 18, 18, 20, 20, 20, 20, 99, 99 } },
+                {2,  new List<int>(){ 9, 12, 15, 18, 20, 25, 30, 30, 30, 30, 99, 99, 99, 99 } },
+                {3,  new List<int>(){ 9, 12, 15, 20, 25, 30, 35, 40, 40, 99, 99, 99, 99, 99 } },
+                {4,  new List<int>(){ 9, 12, 15, 20, 25, 30, 35, 40, 99, 99, 99, 99, 99, 99 } },
+                {5,  new List<int>(){ 9, 12, 15, 20, 25, 30, 35, 40, 99, 99, 99, 99, 99, 99 } },
+            };
+
         static private Rect windRc = new Rect(100, 100, 200, 200);
         public static void OnGUI()
         {
             if(pracJmpSelectState == PracJmpSelectState.Open) {
+                Cursor.visible = true;
                 windRc.center = new Vector2(Screen.width/2,Screen.height/2);
                 windRc.size = new Vector2(Screen.width*0.4f,Screen.height*0.4f);
-                GUILayout.Window(1919810, windRc, Window, "jump");
+                GUILayout.Window(1919810, windRc, Window, "select");
             }
         }
         static private void Window(int id)
         {
+            
             time_wait++;
             int time_wait_max = 10;
-            if(pracJmpStage <= 0){
+
+            // selects
+            GUILayout.BeginHorizontal();
+            GUILayout.BeginVertical();
+            GUILayout.Label("    ");
+            GUILayout.Label("---JUMP---");
+            if (pracJmpStage <= 0){
                 var cur_Faces = bossFaces_2[pracJmpBoss - 1];
                 if (time_wait>=time_wait_max && (UnityEngine.Input.GetKeyDown(m_StandaloneInputModule.Instance.m_Right) || UnityEngine.Input.GetKeyDown(m_StandaloneInputModule.Instance.m_Down)))
                 {
@@ -404,7 +453,6 @@ namespace ASL_Prac
                     if (pracJmpBossFace < 0)
                         pracJmpBossFace = cur_Faces.Count - 1;
                 }
-                GUILayout.Label(" ");
                 for(int i=0;i<cur_Faces.Count;i++)
                 {
                     GUIStyle activated_style = new GUIStyle(GUI.skin.label);
@@ -413,11 +461,13 @@ namespace ASL_Prac
                         activated_style.normal.textColor = Color.green;
                         activated_style.fontStyle = FontStyle.Bold;
                     }else{
-                        activated_style.normal.textColor = Color.gray;
+                        activated_style.normal.textColor = Color.white;
                     }
                     GUILayout.Label(cur_Faces[i].name, activated_style);
                 }
-            }else{
+            }
+            else
+            {
                 var cur_stages = stageFace_2[pracJmpStage - 1];
                 if (time_wait>=time_wait_max && (UnityEngine.Input.GetKeyDown(m_StandaloneInputModule.Instance.m_Right) || UnityEngine.Input.GetKeyDown(m_StandaloneInputModule.Instance.m_Down)))
                 {
@@ -433,7 +483,6 @@ namespace ASL_Prac
                     if (pracJmpStageFace < 0)
                         pracJmpStageFace = cur_stages.Count - 1;
                 }
-                GUILayout.Label(" ");
                 for (int i = 0; i<cur_stages.Count; i++)
                 {
                     GUIStyle activated_style = new GUIStyle(GUI.skin.label);
@@ -442,12 +491,128 @@ namespace ASL_Prac
                         activated_style.normal.textColor = Color.green;
                         activated_style.fontStyle = FontStyle.Bold;
                     } else {
-                        activated_style.normal.textColor = Color.gray;
+                        activated_style.normal.textColor = Color.white;
                     }
                     GUILayout.Label(Prac_Locale.GetLocaleString(cur_stages[i].name), activated_style);
                 }
             }
+            GUILayout.Label("---------");
+            GUILayout.EndVertical();
+            GUILayout.BeginVertical();
+            GUILayout.Label("    ");
+            GUILayout.Label("---RES---");
+
+            {
+                GUILayout.BeginHorizontal();
+                res_life = GUILayout.HorizontalSlider(res_life, 0.0f, 8.0f);
+                res_life = (float)Math.Round(res_life);
+                GUILayout.Label($"{Prac_Locale.GetLocaleString("life")}: {res_life}");
+                GUILayout.EndHorizontal();
+            }
+            {
+                GUILayout.BeginHorizontal();
+                res_life_peice_a = GUILayout.HorizontalSlider(res_life_peice_a, 0.0f, res_life_peice_b==99?99: res_life_peice_b-1);
+                res_life_peice_b_index = GUILayout.HorizontalSlider(res_life_peice_b_index, 0.0f, 13.0f);
+                var life_peice_bs = life_peice_b_diff[Sincos.select_nandu];
+
+                res_life_peice_a = (float)Math.Round(res_life_peice_a);
+                res_life_peice_b_index = (float)Math.Round(res_life_peice_b_index);
+
+                if (res_life_peice_b_index < 0.0f)
+                    res_life_peice_b_index = 0;
+                if(res_life_peice_b_index > life_peice_bs.Count)
+                    res_life_peice_b_index = life_peice_bs.Count;
+
+                if (res_life_peice_a < 0.0f)
+                    res_life_peice_a = 0;
+
+                res_life_peice_b = life_peice_bs[(int)res_life_peice_b_index];
+                if (res_life_peice_a >= res_life_peice_b)
+                    res_life_peice_a = res_life_peice_b==99 ? 99 : res_life_peice_b-1;
+
+                GUILayout.Label($"{Prac_Locale.GetLocaleString("lifepiece")}: {res_life_peice_a}/{life_peice_bs[(int)res_life_peice_b_index]}");
+                GUILayout.EndHorizontal();
+            }
+            {
+                GUILayout.BeginHorizontal();
+                res_border_percent = GUILayout.HorizontalSlider(res_border_percent, 0.0f, 300.000f);
+                int res_border_int = (int)(res_border_percent * 100000.0f/100.0f);
+                if(res_border_int < 299999)
+                    GUILayout.Label($"{Prac_Locale.GetLocaleString("border")}: {Math.Floor(res_border_percent)} %");
+                else
+                    GUILayout.Label($"{Prac_Locale.GetLocaleString("border")}: 300 %");
+                GUILayout.EndHorizontal();
+                GUILayout.Label($"{Prac_Locale.GetLocaleString("border_desc")}");
+            }
+            {
+                GUILayout.BeginHorizontal();
+                res_time_hour = GUILayout.HorizontalSlider(res_time_hour, 0.0f, 24f);
+                res_time_min = GUILayout.HorizontalSlider(res_time_min, 0.0f, 59f);
+                res_time_sec = GUILayout.HorizontalSlider(res_time_sec, 0.0f, 59f);
+
+                res_time_hour = (float)Math.Round(res_time_hour);
+                res_time_min = (float)Math.Round(res_time_min);
+                res_time_sec = (float)Math.Round(res_time_sec);
+                if (res_time_hour == 24)
+                {
+                    res_time_min = 0;
+                    res_time_sec = 0;
+                }
+                GUILayout.Label($"{Prac_Locale.GetLocaleString("time")}: {res_time_hour}:{res_time_min}:{res_time_sec}");
+                GUILayout.EndHorizontal();
+            }
+            {
+                GUILayout.BeginHorizontal();
+                graze_str = GUILayout.TextArea(graze_str);
+                var succ = int.TryParse(graze_str,out res_graze);
+                if(!succ){
+                    graze_str = "0";
+                    res_graze = 0;
+                }
+                GUILayout.Label($"{Prac_Locale.GetLocaleString("graze")}: {res_graze}");
+                GUILayout.EndHorizontal();
+            }
+            {
+                GUILayout.BeginHorizontal();
+                dedian_str = GUILayout.TextArea(dedian_str);
+                var succ = int.TryParse(dedian_str, out res_dedian);
+                if (!succ)
+                {
+                    dedian_str = "0";
+                    res_dedian = 0;
+                }
+                GUILayout.Label($"{Prac_Locale.GetLocaleString("dian")}: {res_dedian*10}");
+                GUILayout.EndHorizontal();
+            }
+            {
+                GUILayout.BeginHorizontal();
+                fenshu_str = GUILayout.TextArea(fenshu_str);
+                var succ = int.TryParse(fenshu_str, out res_fenshu);
+                if (!succ)
+                {
+                    fenshu_str = "0";
+                    res_fenshu = 0;
+                }
+                if(res_fenshu==0)
+                    GUILayout.Label($"{Prac_Locale.GetLocaleString("score")}: 0");
+                else
+                    GUILayout.Label($"{Prac_Locale.GetLocaleString("score")}: {res_fenshu}0");
+                GUILayout.EndHorizontal();
+            }
+            {
+                GUILayout.BeginHorizontal();
+                string str = $"{Prac_Locale.GetLocaleString("LSC")}: {res_has_LSC}";
+                if (GUILayout.Button(str))
+                    res_has_LSC = !res_has_LSC;
+               GUILayout.EndHorizontal();
+            }
             
+            GUILayout.Label("---------");
+            GUILayout.EndVertical();
+            GUILayout.EndHorizontal();
+           
+
+
             if (time_wait>=time_wait_max){
                 bool is_key_down = false;
                 foreach(var key in m_StandaloneInputModule.Instance.m_SubmitKeys)
@@ -481,6 +646,7 @@ namespace ASL_Prac
                 if (is_key_down) {
                     isPrac = false;
                     time_wait = 0;
+                    Cursor.visible = false;
                     pracJmpSelectState = PracJmpSelectState.Closed;
                     foreach (var prs in instance_selected.pr_stage){
                         prs.interactable = true;
@@ -578,6 +744,7 @@ namespace ASL_Prac
             pracJmpStage = stage;
             pracJmpBoss = boss;
             if (pracJmpSelectState == PracJmpSelectState.OnEnter){
+                Cursor.visible = false;
                 pracJmpSelectState = PracJmpSelectState.Closed;
                 return true;
             }
@@ -598,6 +765,101 @@ namespace ASL_Prac
     }
     class Prac_JmpPatches
     {
+
+        [HarmonyPostfix, HarmonyPatch(typeof(Loading0), "Awake")]
+        public static void Loading0_Awake_PracJmpPatch(Loading0 __instance)
+        {
+            if (Prac_JmpGUIPatches.isPrac == false)
+            {
+                if(!Sincos.ifreplay)
+                {
+                    // isPrac == false, replay == false
+                    return;
+                }
+                else
+                {
+                    //isPrac == false, replay == true
+                    if (Sincos.replay_nandu >= 6 && Sincos.replay_nandu <= 9)
+                    {
+                        //isPrac == false, replay == true, practice mode == true
+                        if (__instance.gameObject.GetComponent<Jiejie_add>() != null)
+                            UnityEngine.Object.Destroy(__instance.gameObject.GetComponent<Jiejie_add>());
+                        Sincos.jiemian_life = Sincos.replay_life[Sincos.replay_start_mian];
+                        return;
+                    }
+                    else
+                    {
+                        //isPrac == false, replay == true, practice mode == false
+                        return;
+                    }
+                }
+            }
+
+            // isPrac == true
+            if (Sincos.ifreplay)
+            {
+                // isPrac == true, replay == true
+                if (Sincos.replay_nandu >= 6 && Sincos.replay_nandu <= 9)
+                {
+                    //isPrac == true, replay == true, practice mode == true
+                    if (__instance.gameObject.GetComponent<Jiejie_add>() != null)
+                        UnityEngine.Object.Destroy(__instance.gameObject.GetComponent<Jiejie_add>());
+                    Sincos.jiemian_life = Sincos.replay_life[Sincos.replay_start_mian];
+                    return;
+                }
+                else
+                {
+                    //isPrac == false, replay == true, practice mode == false
+                    return;
+                }
+            }
+
+            // isPrac == true, replay == false
+            if (__instance.gameObject.GetComponent<Jiejie_add>()!=null)
+                UnityEngine.Object.Destroy(__instance.gameObject.GetComponent<Jiejie_add>());
+
+            Sincos.jiemian_life = (int)Math.Round(Prac_JmpGUIPatches.res_life) + 1;
+            Sincos.jiemian_lifepice_a = (int)Math.Round(Prac_JmpGUIPatches.res_life_peice_a);
+            Sincos.lifepice_index = (int)Math.Round(Prac_JmpGUIPatches.res_life_peice_b_index);
+            Sincos.jiemian_lifepice_b = Prac_JmpGUIPatches.res_life_peice_b;
+
+            int res_border_int = (int)(Prac_JmpGUIPatches.res_border_percent * 100000.0f/100.0f);
+            if (res_border_int < 299999)
+                Sincos.jiejiefanghu_val = res_border_int;
+            else
+                Sincos.jiejiefanghu_val = 299999;
+
+            if(res_border_int < 100000)
+                Sincos.jiejie_cengshu = 0;
+            else if(res_border_int < 200000)
+                Sincos.jiejie_cengshu = 1;
+            else if(res_border_int < 299999)
+                Sincos.jiejie_cengshu = 2;
+            else
+                Sincos.jiejie_cengshu = 3;
+
+            Sincos.fenshu_now = Prac_JmpGUIPatches.res_fenshu;
+            Sincos.daojishi =(((int)Math.Round(Prac_JmpGUIPatches.res_time_hour))*3600
+                +((int)Math.Round(Prac_JmpGUIPatches.res_time_min))*60
+                +((int)Math.Round(Prac_JmpGUIPatches.res_time_sec)))*2;
+            Sincos.cadanshu = Prac_JmpGUIPatches.res_graze;
+            Sincos.jiemian_dedian = Prac_JmpGUIPatches.res_dedian*10;
+
+            Sincos.replay_start_mian -=1;
+            Sincos.replay_LSC = Prac_JmpGUIPatches.res_has_LSC ? 1:0;
+            Sincos.replay_life[Sincos.replay_start_mian] = Sincos.jiemian_life;
+            Sincos.replay_life_piece[Sincos.replay_start_mian] = Sincos.jiemian_lifepice_a;
+            Sincos.replay_life_index[Sincos.replay_start_mian] = Sincos.lifepice_index;
+            Sincos.replay_jiejie_val[Sincos.replay_start_mian] = Sincos.jiejiefanghu_val;
+            Sincos.replay_jiejie_cengshu[Sincos.replay_start_mian] = Sincos.jiejie_cengshu;
+            Sincos.replay_fenshu[Sincos.replay_start_mian] = Sincos.fenshu_now;
+            Sincos.replay_time_daojishi[Sincos.replay_start_mian] = Sincos.daojishi;
+            Sincos.replay_dedian[Sincos.replay_start_mian] = Sincos.jiemian_dedian;
+            Sincos.replay_graze[Sincos.replay_start_mian] = Sincos.cadanshu;
+            Sincos.replay_start_mian +=1;
+            // Sincos.replay_jiejie_jianglicishu[Sincos.replay_start_mian] = Sincos.jiejie_jianglicishu;
+        }
+
 
         [HarmonyPrefix, HarmonyPatch(typeof(Bossmove), "FixedUpdate")]
         public static void Bossmove_FixedUpdate_PracJmpPatch(Bossmove __instance)
@@ -671,7 +933,14 @@ namespace ASL_Prac
                         __instance.path = __instance.path.Substring(0, idx) + "/" + "3";
                         __instance.aa = __instance.path;
                        
-                    }else {
+                    }else if(face.n_face==-2){// 4boss normal 1+2
+                        __instance.bm.fuka = 2;
+                        int idx = __instance.path.LastIndexOf('/');
+                        __instance.path = __instance.path.Substring(0, idx) + "/" + "1";
+                        __instance.aa = __instance.path;
+                    }
+                    else
+                    {
                         __instance.bm.fuka = face.n_face;
                         int idx = __instance.path.LastIndexOf('/');
                         __instance.path = __instance.path.Substring(0, idx) + "/" + $"{face.n_path}";
@@ -826,12 +1095,12 @@ namespace ASL_Prac
             }
             // replay pitch
             {
-                if (Sincos.kuaijin_yunxu && Sincos.gametime >= 120 && Time.timeScale != 0f)
+                if (Sincos.kuaijin_yunxu && Sincos.gametime >= 120 && Time.timeScale != 0f && Sincos.ifreplay==true)
                 {
-                    if ((UnityEngine.Input.GetKey(m_StandaloneInputModule.Instance.m_ctrl) || UnityEngine.Input.GetKey(m_StandaloneInputModule.Instance.mj_ctrl)) && Sincos.ifreplay==true)
+                    if ((UnityEngine.Input.GetKey(m_StandaloneInputModule.Instance.m_ctrl) || UnityEngine.Input.GetKey(m_StandaloneInputModule.Instance.mj_ctrl)))
                     {
                         Sincos.BGM.pitch = 3f;
-                    }else if ((UnityEngine.Input.GetKey(m_StandaloneInputModule.Instance.m_slow) || UnityEngine.Input.GetKey(m_StandaloneInputModule.Instance.mj_slow)) && Sincos.ifreplay==true)
+                    }else if ((UnityEngine.Input.GetKey(m_StandaloneInputModule.Instance.m_slow) || UnityEngine.Input.GetKey(m_StandaloneInputModule.Instance.mj_slow)))
                     {
                         Sincos.BGM.pitch = 0.5f;
                     }
@@ -842,7 +1111,7 @@ namespace ASL_Prac
                 }
                 else
                 {
-                    if (Sincos.BGM.pitch != 1f)
+                    if (Sincos.ifreplay==true && Sincos.BGM.pitch != 1f)
                         Sincos.BGM.pitch = 1f;
                 }
                 
@@ -927,7 +1196,7 @@ namespace ASL_Prac
         }
     }
 
-    [BepInPlugin("xxx.RUE.ASL_Prac","ASL_Prac","0.0.5")]
+    [BepInPlugin("xxx.RUE.ASL_Prac","ASL_Prac","0.0.6")]
     public class ASL_Prac_Mod:BaseUnityPlugin
     {
         void Start()
@@ -947,6 +1216,15 @@ namespace ASL_Prac
             GUI.skin.label.fontSize = 32;
             GUI.skin.button.fontSize = 32;
             GUI.skin.window.fontSize = 32;
+            GUI.skin.horizontalSlider.fontSize = 32;
+            GUI.skin.horizontalSlider.fixedHeight = 32;
+            GUI.skin.horizontalSliderThumb.fixedHeight = 32;
+            GUI.skin.horizontalSliderThumb.fixedWidth = 32;
+            GUI.skin.textArea.fontSize = 32;
+            GUI.skin.toggle.fontSize = 32;
+            GUI.skin.box.fixedHeight = 32;
+            GUI.skin.button.fixedHeight = 32;
+
             Prac_JmpGUIPatches.OnGUI();
             Prac_Overlay.OnGUI();
             if(fixedDeltaT_saved == -1.0f)
