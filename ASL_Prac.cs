@@ -24,7 +24,8 @@ namespace ASL_Prac
     {
         public static bool is_invincable = false;
         public static bool is_disable_X = false;
-        public static bool is_Ctrl_Spdup = false;
+        public static bool is_ctrl_spdup = false;
+        public static bool is_disable_Pause = false;
     }
     static class Prac_Locale
     {
@@ -42,6 +43,8 @@ namespace ASL_Prac
             { "Invincable","无敌" },
             { "Unlock all stage","全关解锁" },
             { "Disable X key","禁用X键" },
+            { "Disable Pause","切屏不停" },
+
             { "Kill all","瞬秒敌机" },
             { "Ctrl SpdUp","Ctrl快进" },
             { "front 1"                         ,"前半 1"},
@@ -142,7 +145,8 @@ namespace ASL_Prac
         static private Rect windRc = new Rect(10, 10, 300, 400);
         static private Prac_Hotkey hotkey_invincable = new Prac_Hotkey(KeyCode.F1,"F1","Invincable",(bool s) => { Prac_Variables.is_invincable=s; });
         static private Prac_Hotkey hotkey_disable_X = new Prac_Hotkey(KeyCode.F2, "F2", "Disable X key", (bool s) => { Prac_Variables.is_disable_X = s; });
-        static private Prac_Hotkey hotkey_Ctrl_Spdup = new Prac_Hotkey(KeyCode.F3, "F3", "Ctrl SpdUp", (bool s) => { Prac_Variables.is_Ctrl_Spdup = s; });
+        static private Prac_Hotkey hotkey_ctrl_spdup = new Prac_Hotkey(KeyCode.F3, "F3", "Ctrl SpdUp", (bool s) => { Prac_Variables.is_ctrl_spdup = s; });
+        static private Prac_Hotkey hotkey_disable_pause = new Prac_Hotkey(KeyCode.F4, "F4", "Disable Pause", (bool s) => { Prac_Variables.is_disable_Pause = s; });
 
         static private Prac_Hotkey hotkey_unlock_all = new Prac_Hotkey(KeyCode.F5,"F5", "Unlock all stage", (bool s) => { 
             hotkey_unlock_all.isActivated = false;
@@ -176,7 +180,8 @@ namespace ASL_Prac
                 GUILayout.Label("  ");
                 hotkey_invincable.OnGUI();
                 hotkey_disable_X.OnGUI();
-                hotkey_Ctrl_Spdup.OnGUI();
+                hotkey_ctrl_spdup.OnGUI();
+                hotkey_disable_pause.OnGUI();
                 GUILayout.Label("  ");
                 hotkey_unlock_all.OnGUI();
                 hotkey_BossKill.OnGUI();
@@ -1181,7 +1186,7 @@ namespace ASL_Prac
         }
 
         [HarmonyPrefix, HarmonyPatch(typeof(Centeryidong), "FixedUpdate")]
-        public static void FixedUpdate_InvincablePatch(Centeryidong __instance)
+        public static void Centeryidong_FixedUpdate_InvincablePatch(Centeryidong __instance)
         {
             if (Prac_Variables.is_invincable){
                 if(Sincos.lift == false)
@@ -1194,9 +1199,19 @@ namespace ASL_Prac
                 }
             }
         }
+
+        [HarmonyPrefix, HarmonyPatch(typeof(Zanting), "OnApplicationFocus")]
+        public static bool Zanting_OnApplicationFocus_DisablePause(Zanting __instance)
+        {
+            if (Prac_Variables.is_disable_Pause)
+            {
+                return false;
+            }
+            return true;
+        }
     }
 
-    [BepInPlugin("xxx.RUE.ASL_Prac","ASL_Prac","0.0.6")]
+    [BepInPlugin("xxx.RUE.ASL_Prac","ASL_Prac","0.0.7")]
     public class ASL_Prac_Mod:BaseUnityPlugin
     {
         void Start()
@@ -1231,7 +1246,7 @@ namespace ASL_Prac
             {
                 fixedDeltaT_saved = UnityEngine.Time.fixedDeltaTime;
             }
-            if (Prac_Variables.is_Ctrl_Spdup){
+            if (Prac_Variables.is_ctrl_spdup){
                 if (UnityEngine.Input.GetKey(KeyCode.LeftControl)&& Sincos.replay_nandu >= 6 && Sincos.ifreplay==false) //in prac mode,Sincos.replay_nandu = nandu+6
                 {
                     if(UnityEngine.Time.fixedDeltaTime!=1.0f/(120.0f*5.0f))
