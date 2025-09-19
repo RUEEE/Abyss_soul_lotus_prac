@@ -876,7 +876,10 @@ namespace ASL_Prac
                 var face = Prac_JmpGUIPatches.bossFaces_2[Prac_JmpGUIPatches.pracJmpBoss - 1][Prac_JmpGUIPatches.pracJmpBossFace];
                 if (__instance.fuka == 0)
                 {
-                    __instance.fuka = face.n_face - 1;
+                    if(__instance.double_boss && __instance.double_boss2)
+                        __instance.fuka = face.n_face;
+                    else
+                        __instance.fuka = face.n_face - 1;
                     if (face.is_spell)
                     {
                         // __instance.life = -1;
