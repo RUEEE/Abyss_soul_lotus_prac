@@ -1309,7 +1309,7 @@ namespace ASL_Prac
             
             if(sceneNames.Contains(SceneManager.GetActiveScene().name))
             {
-                if (Prac_Variables.gameFPS != 60 && UnityEngine.Time.fixedDeltaTime != 1.0f/(Prac_Variables.gameFPS * 2.0f))
+                if (UnityEngine.Time.fixedDeltaTime != 1.0f/(Prac_Variables.gameFPS * 2.0f))
                 {
                     Application.targetFrameRate = Convert.ToInt32(Sincos.FPS*(Prac_Variables.gameFPS/60.0f));
                     UnityEngine.Time.fixedDeltaTime = 1.0f/(Prac_Variables.gameFPS * 2.0f);
@@ -1324,7 +1324,7 @@ namespace ASL_Prac
                     }
                 }
             } else {
-                if (Prac_Variables.gameFPS != 60 && UnityEngine.Time.fixedDeltaTime != 1.0f/(60.0f * 2.0f))
+                if (UnityEngine.Time.fixedDeltaTime != 1.0f/(60.0f * 2.0f))
                 {
                     Application.targetFrameRate = Sincos.FPS;
                     UnityEngine.Time.fixedDeltaTime = 1.0f/(60.0f * 2.0f);
