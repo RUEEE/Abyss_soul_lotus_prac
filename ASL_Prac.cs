@@ -17,6 +17,8 @@ using System.Globalization;
 using System.IO;
 using UnityEngine.UI;
 using System.Runtime.CompilerServices;
+using UnityEngine.SceneManagement;
+using System.Collections.ObjectModel;
 
 namespace ASL_Prac
 {
@@ -26,6 +28,9 @@ namespace ASL_Prac
         public static bool is_disable_X = false;
         public static bool is_ctrl_spdup = false;
         public static bool is_disable_Pause = false;
+        public static bool is_fasterBGM = false;
+
+        public static int gameFPS = 60;
     }
     static class Prac_Locale
     {
@@ -44,6 +49,9 @@ namespace ASL_Prac
             { "Unlock all stage","全关解锁" },
             { "Disable X key","禁用X键" },
             { "Disable Pause","切屏不停" },
+            { "Faster15f","加速15f" },
+            { "Slower15f","减速15f" },
+            { "FasterBGM","加速BGM" },
 
             { "Kill all","瞬秒敌机" },
             { "Ctrl SpdUp","Ctrl快进" },
@@ -171,6 +179,26 @@ namespace ASL_Prac
                 }
             }
         }, new Color(0.7f, 0.9f, 1.0f));
+
+        static private Prac_Hotkey hotkey_Faster = new Prac_Hotkey(KeyCode.F7, "F7", "Faster15f", (bool s) => {
+            hotkey_Faster.isActivated = false;
+            // do not change Sincos.FPS since it will make game wrong
+            Prac_Variables.gameFPS += 15;
+            if (Prac_Variables.gameFPS>180)
+                Prac_Variables.gameFPS=180;
+        }, new Color(1.0f, 0.7f, 0.7f));
+
+        static private Prac_Hotkey hotkey_Slower = new Prac_Hotkey(KeyCode.F8, "F8", "Slower15f", (bool s) => {
+            hotkey_Slower.isActivated = false;
+
+            Prac_Variables.gameFPS -= 15;
+            if (Prac_Variables.gameFPS<60)
+                Prac_Variables.gameFPS=60;
+        }, new Color(1.0f, 0.7f, 0.7f));
+        static private Prac_Hotkey hotkey_fasterBGM = 
+            new Prac_Hotkey(KeyCode.F9, "F9", "FasterBGM", (bool s) => { Prac_Variables.is_fasterBGM = s; }, 
+                new Color(1.0f, 0.7f, 0.7f));
+
         static public void OnGUI(){
             if (isOpen) {
                 GUILayout.BeginArea(new Rect(0, 0, Screen.width, Screen.height));
@@ -185,6 +213,11 @@ namespace ASL_Prac
                 GUILayout.Label("  ");
                 hotkey_unlock_all.OnGUI();
                 hotkey_BossKill.OnGUI();
+                GUILayout.Label("  ");
+                hotkey_Faster.OnGUI();
+                hotkey_Slower.OnGUI();
+                hotkey_fasterBGM.OnGUI();
+                GUILayout.Label($"FPS={Prac_Variables.gameFPS}");
                 GUILayout.EndArea();
                 // GUILayout.Window(114514, windRc, Window, "tools");
                 if (UnityEngine.Input.GetKeyUp(KeyCode.Backspace) && wait_time>10){
@@ -1229,6 +1262,30 @@ namespace ASL_Prac
         }
 
         static float fixedDeltaT_saved = -1.0f;
+
+        static Collection<string> sceneNames = new Collection<string> { 
+            "Stage1" ,
+            "Stage2" ,
+            "Stage3" ,
+            "Stage4" ,
+            "Stage5" ,
+            "Stage6" ,
+            "Stage1_boss" ,
+            "Stage2_boss" ,
+            "Stage3_boss" ,
+            "Stage4_boss" ,
+            "Stage5_boss" ,
+            "Stage6_boss" ,
+            "Stage1_spell" ,
+            "Stage2_spell" ,
+            "Stage3_spell" ,
+            "Stage4_spell" ,
+            "Stage5_spell" ,
+            "Stage6_spell" ,
+            "StageEXA" ,
+            "StageEXA_spell" ,
+            "StageEXB" ,
+        };
         void OnGUI()
         {
             GUI.skin.label.fontSize = 32;
@@ -1249,10 +1306,46 @@ namespace ASL_Prac
             {
                 fixedDeltaT_saved = UnityEngine.Time.fixedDeltaTime;
             }
-            if (Prac_Variables.is_ctrl_spdup){
-                if (UnityEngine.Input.GetKey(KeyCode.LeftControl)&& Sincos.replay_nandu >= 6 && Sincos.ifreplay==false) //in prac mode,Sincos.replay_nandu = nandu+6
+            
+            if(sceneNames.Contains(SceneManager.GetActiveScene().name))
+            {
+                if (Prac_Variables.gameFPS != 60 && UnityEngine.Time.fixedDeltaTime != 1.0f/(Prac_Variables.gameFPS * 2.0f))
                 {
-                    if(UnityEngine.Time.fixedDeltaTime!=1.0f/(120.0f*5.0f))
+                    Application.targetFrameRate = Convert.ToInt32(Sincos.FPS*(Prac_Variables.gameFPS/60.0f));
+                    UnityEngine.Time.fixedDeltaTime = 1.0f/(Prac_Variables.gameFPS * 2.0f);
+                    fixedDeltaT_saved =  1.0f/(Prac_Variables.gameFPS*2.0f);
+                    if (Prac_Variables.is_fasterBGM)
+                    {
+                        Sincos.BGM.pitch = Prac_Variables.gameFPS/60.0f;
+                    }
+                    else
+                    {
+                        Sincos.BGM.pitch = 1.0f;
+                    }
+                }
+            } else {
+                if (Prac_Variables.gameFPS != 60 && UnityEngine.Time.fixedDeltaTime != 1.0f/(60.0f * 2.0f))
+                {
+                    Application.targetFrameRate = Sincos.FPS;
+                    UnityEngine.Time.fixedDeltaTime = 1.0f/(60.0f * 2.0f);
+                    fixedDeltaT_saved =  1.0f/(60.0f*2.0f);
+                    if (Prac_Variables.is_fasterBGM)
+                    {
+                        Sincos.BGM.pitch = Prac_Variables.gameFPS/60.0f;
+                    }
+                    else
+                    {
+                        Sincos.BGM.pitch = 1.0f;
+                    }
+                }
+            }
+
+
+            if (Prac_Variables.is_ctrl_spdup)
+            {
+                if (UnityEngine.Input.GetKey(KeyCode.LeftControl)&& Sincos.replay_nandu >= 6 && Sincos.ifreplay == false) //in prac mode,Sincos.replay_nandu = nandu+6
+                {
+                    if (UnityEngine.Time.fixedDeltaTime != 1.0f/(120.0f*5.0f))
                     {
                         UnityEngine.Time.fixedDeltaTime = 1.0f/(120.0f*5.0f);
                         Sincos.BGM.pitch = 5.0f;
@@ -1260,23 +1353,36 @@ namespace ASL_Prac
                 }
                 else
                 {
-                    if (UnityEngine.Time.fixedDeltaTime!=fixedDeltaT_saved)
+                    if (UnityEngine.Time.fixedDeltaTime != fixedDeltaT_saved)
                     {
                         UnityEngine.Time.fixedDeltaTime = fixedDeltaT_saved;
-                        Sincos.BGM.pitch = 1.0f;
+                        if (Prac_Variables.is_fasterBGM)
+                        {
+                            Sincos.BGM.pitch = 120.0f/fixedDeltaT_saved;
+                        }
+                        else
+                        {
+                            Sincos.BGM.pitch = 1.0f;
+                        }
                     }
                 }
-                
+
             }
             else
             {
                 if (fixedDeltaT_saved != -1.0f && fixedDeltaT_saved != UnityEngine.Time.fixedDeltaTime)
                 {
                     UnityEngine.Time.fixedDeltaTime = fixedDeltaT_saved;
-                    Sincos.BGM.pitch = 1.0f;
+                    if (Prac_Variables.is_fasterBGM)
+                    {
+                        Sincos.BGM.pitch = 120.0f/fixedDeltaT_saved;
+                    }
+                    else
+                    {
+                        Sincos.BGM.pitch = 1.0f;
+                    }
                 }
             }
-           
         }
         
     }
